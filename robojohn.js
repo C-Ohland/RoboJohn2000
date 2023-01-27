@@ -6,7 +6,7 @@ const gamesPath = path.join(__dirname, '/gamelist');
 const attendancePath = path.join(__dirname, '/attendance');
 const votesPath = path.join(__dirname, '/votes');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
-const { guildId, token, targetTextId} = require('./config.json');
+require('dotenv').config();
 var gameList;
 
 // Create a new client instance
@@ -44,8 +44,8 @@ for (const file of eventFiles) {
 	}
 }
 
-// Log in to Discord with your client's token
-client.login(token);
+// Log in to Discord with your client's process.env.DISCORD_TOKEN
+client.login(process.env.DISCORD_TOKEN);
 setTimeout(() => {
 	client.user.setActivity('Arma 2');
 },5000);
@@ -54,7 +54,7 @@ setTimeout(() => {
 // Timed voting closeout warning
 var voteWarning = cron.schedule('58 6 * * Fridays', () => {
 	console.log("vote warning");
-	const targetChannel = client.channels.cache.get(targetTextId);
+	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
 	targetChannel.send('Concluding vote based on current attendees in 20 minutes! Make sure to get in any last-minute votes and use \/here to log your attendance for this weeks so your votes are counted.');
 	
 }, {
@@ -65,7 +65,7 @@ var voteWarning = cron.schedule('58 6 * * Fridays', () => {
 // Timed prompt to vote
 var votePrompt = cron.schedule('0 8 * * Mondays', () => {
 	console.log("vote prompt");
-	const targetChannel = client.channels.cache.get(targetTextId);
+	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
 	
 	gameList = '';
 	gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'));
@@ -89,7 +89,7 @@ var votePrompt = cron.schedule('0 8 * * Mondays', () => {
 //Timed vote closeout
 var votePrompt = cron.schedule('18 7 * * Fridays', () => {
 	console.log("vote closeout");
-	const targetChannel = client.channels.cache.get(targetTextId);
+	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
 	const attendanceFiles = fs.readdirSync(attendancePath).filter(file => file.endsWith('.json'));
 	var tallyVotes = [];
 	const gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'));
