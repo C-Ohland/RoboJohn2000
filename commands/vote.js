@@ -2,7 +2,7 @@ const { SlashCommandBuilder } = require('discord.js');
 const { ActionRowBuilder, Events, StringSelectMenuBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('node:path');
-const gamesPath = path.join(__dirname, '..\\gamelist');
+const gamesPath = path.join(__dirname, '../gamelist');
 
 module.exports = {
 	data: new SlashCommandBuilder()

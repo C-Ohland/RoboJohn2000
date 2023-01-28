@@ -1,1 +1,1 @@
-web: node robojohn.js
+worker: node robojohn.js
