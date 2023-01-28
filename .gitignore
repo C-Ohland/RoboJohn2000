@@ -4,3 +4,6 @@ config.json
 attendance/*
 gamelist/*
 votes/*
+!attendance/.gitkeep
+!gamelist/.gitkeep
+!votes/.gitkeep
