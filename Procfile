@@ -1,1 +1,1 @@
-worker: npm run robojohn.js
+worker: node robojohn.js
