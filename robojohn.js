@@ -118,13 +118,13 @@ var votePrompt = cron.schedule('18 7 * * Fridays', () => {
 			}
 		}
 		
-		// fs.unlink(attendancePath + '/' + attendee, (err) => {
-		// if (err){
-			// console.log(err);
-		// }
-		// else {
-			// console.log('attendee removed');
-		// }});
+		fs.unlink(attendancePath + '/' + attendee, (err) => {
+		if (err){
+			console.log(err);
+		}
+		else {
+			console.log('attendee removed');
+		}});
 
 		console.log(tallyVotes);
 	}
