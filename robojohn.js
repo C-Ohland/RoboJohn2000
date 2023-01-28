@@ -53,7 +53,7 @@ setTimeout(() => {
 
 
 // Timed voting closeout warning
-var voteWarning = cron.schedule('58 6 * * Fridays', () => {
+var voteWarning = cron.schedule('58 18 * * Fridays', () => {
 	console.log("vote warning");
 	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
 	targetChannel.send('Concluding vote based on current attendees in 20 minutes! Make sure to get in any last-minute votes and use \/here to log your attendance for this weeks so your votes are counted.');
@@ -88,7 +88,7 @@ var votePrompt = cron.schedule('0 8 * * Mondays', () => {
 });
 
 //Timed vote closeout
-var votePrompt = cron.schedule('18 7 * * Fridays', () => {
+var votePrompt = cron.schedule('18 19 * * Fridays', () => {
 	console.log("vote closeout");
 	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
 	const attendanceFiles = fs.readdirSync(attendancePath).filter(file => file.endsWith('.json'));
@@ -161,7 +161,7 @@ var votePrompt = cron.schedule('18 7 * * Fridays', () => {
 });
 
 // RoboJohn goes to sleep
-var votePrompt = cron.schedule('0 9 * * *', () => {
+var votePrompt = cron.schedule('0 21 * * *', () => {
 	console.log("going to sleep");
 	
 	client.user.setStatus('invisible');
