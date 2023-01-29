@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const fs = require('fs');
-const path = require('node:path');
+const path = require('path');
 const gamesPath = path.join(__dirname, '../gamelist');
 
 

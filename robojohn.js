@@ -1,6 +1,6 @@
 // Require the necessary discord.js classes
 const cron = require('node-cron')
-const fs = require('node:fs');
+const fs = require('fs');
 const path = require('node:path');
 const gamesPath = path.join(__dirname, '/gamelist');
 const attendancePath = path.join(__dirname, '/attendance');
