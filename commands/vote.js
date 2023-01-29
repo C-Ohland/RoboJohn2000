@@ -18,14 +18,17 @@ module.exports = {
 			.setMinValues(1)
 			.setMaxValues(gameFiles.length)
 			
-		for (const file of gameFiles) {
-			const { name } = require(gamesPath + '/' + file);
-			menuOptions.addOptions({label: name, description: name, value: name});
-		}
 		
-		const selectMenu = new ActionRowBuilder().addComponents(menuOptions);
+		if (gameFiles.length > 0){
+			for (const file of gameFiles) {
+				const { name } = require(gamesPath + '/' + file);
+				menuOptions.addOptions({label: name, description: name, value: name});
+			}
 			
-		await interaction.reply({ content: 'Please select the games you would like to play:', ephemeral: true, components: [selectMenu] });
-		
+			const selectMenu = new ActionRowBuilder().addComponents(menuOptions);
+				
+			await interaction.reply({ content: 'Please select the games you would like to play:', ephemeral: true, components: [selectMenu] });
+		}
+		else interaction.reply('There are currently no games on the gamelist.');
 	}
 };

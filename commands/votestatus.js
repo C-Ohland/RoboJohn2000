@@ -15,6 +15,7 @@ module.exports = {
 		console.log("vote closeout");
 		const attendanceFiles = fs.readdirSync(attendancePath).filter(file => file.endsWith('.json'));
 		var hereVotes = [];
+		var totalVotes = [];
 		const gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'));
 		
 		for (game of gameFiles){
@@ -22,9 +23,13 @@ module.exports = {
 			
 			hereVotes.push([name, 0])
 		}
+		for (game of gameFiles){
+			const { name } = require(gamesPath + '/' + game);
+			
+			totalVotes.push([name, 0])
+		}
 		console.log(hereVotes);
 		
-		var totalVotes = hereVotes;
 		
 		const voteFiles = fs.readdirSync(votesPath).filter(file => file.endsWith('.json'));
 		for (voter of voteFiles)
@@ -51,10 +56,10 @@ module.exports = {
 			const { votes } = require(votesPath + '/' + attendee);
 			console.log(votes);
 			
-			for (voteTotal of hereVotes){
-				for (vote of votes){
-					if (voteTotal[0] == vote)
-						voteTotal[1] += 1;
+			for (voteHereTotal of hereVotes){
+				for (voteHere of votes){
+					if (voteHereTotal[0] == voteHere)
+						voteHereTotal[1] += 1;
 				}
 			}
 
@@ -77,21 +82,24 @@ module.exports = {
 		
 		var votesTotalSorted = '';
 		var maxVotes = 0;
-		for (gameVotes of totalVotes){
-			if (gameVotes[1] > maxVotes)
-				maxVotes = gameVotes[1];
+		for (gameHereVotes of totalVotes){
+			if (gameHereVotes[1] > maxVotes)
+				maxVotes = gameHereVotes[1];
 		}
 		for (let i = maxVotes; i > 0; i--) {
-			for (gameVotes of totalVotes){
-				if (gameVotes[1] == i){
-					votesTotalSorted += gameVotes[0] + ': ' + gameVotes[1] + '\n';
+			for (gameHereVotes of totalVotes){
+				if (gameHereVotes[1] == i){
+					votesTotalSorted += gameHereVotes[0] + ': ' + gameHereVotes[1] + '\n';
 				}
 			}
 		}
 		
 		
 		
-		interaction.reply('The overall votes are:\n' + votesTotalSorted + '\n\nThe votes for this week\'s currently logged attendees are:' + votesHereSorted);
+		if (attendanceFiles.length > 0) {
+			interaction.reply('The overall votes are:\n' + votesTotalSorted + '\nThe votes for this week\'s currently logged attendees are:\n' + votesHereSorted);
+		}
+		else interaction.reply('Nobody has been marked here for this week, but the stored votes are:\n' + votesTotalSorted)
 		
 	}
 };

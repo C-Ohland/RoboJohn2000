@@ -12,6 +12,7 @@ module.exports = {
 				
 	async execute(interaction) {
 		
+		var here = false;
 		const attendees = fs.readdirSync(attendancePath).filter(file => file.endsWith('.json'));
 		const username = interaction.user.username;
 		
