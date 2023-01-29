@@ -9,6 +9,18 @@ const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 require('dotenv').config();
 var gameList;
 
+var params = {
+  Key:    'hello',
+  Bucket: process.env.BUCKETEER_BUCKET_NAME,
+  Body:   new Buffer('Hello, node.js'),
+};
+
+process.env.AWS_ACCESS_KEY_ID     = process.env.BUCKETEER_AWS_ACCESS_KEY_ID;
+process.env.AWS_SECRET_ACCESS_KEY = process.env.BUCKETEER_AWS_SECRET_ACCESS_KEY;
+process.env.AWS_REGION            = 'us-east-1';
+var AWS = require('aws-sdk');
+var s3  = new AWS.S3();
+
 
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
