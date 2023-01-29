@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const fs = require('fs');
+const fs = require('node:fs');
 const path = require('node:path');
 const attendancePath = path.join(__dirname, '../attendance');
 const votesPath = path.join(__dirname, '../votes');
