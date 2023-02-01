@@ -1,7 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const fs = require('node:fs');
-const path = require('node:path');
-const gamesPath = path.join(__dirname, '../gamelist');
+require('dotenv').config();
 
 
 module.exports = {
@@ -20,38 +18,27 @@ module.exports = {
 				.setRequired(true)),
 				
 	async execute(interaction) {
+		const client = interaction.client;
 		const gameName = interaction.options.getString('name');
 		const maxPlayers = interaction.options.getInteger('maxplayers');
-		const gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'));
-		var alreadyRegistered = false;
-		
-		for (const file of gameFiles) {
-			if(file.toLowerCase().replace(/ /g,'') == gameName.toLowerCase().replace(/ /g,'')+'.json')
-			{
-				alreadyRegistered = true;
-			}
+		var alreadyRegistered = false;		
+		const gameChannel = client.channels.cache.get(process.env.GAMELIST_ID);
+		gameChannel.messages.fetch({ limit: 100 }).then(games => {
+			console.log('Received ' + games.size + ' games');
+			//Iterate through the messages here with the variable "messages".
 			
-		}
-		
-		if(alreadyRegistered){
-			await interaction.reply(gameName + ' is already registered.');
-		}
-		
-		else{
-			const gameJSON = {"name" : gameName,
-			"maxPlayers" : maxPlayers};
-			fs.writeFile(gamesPath + '/' + gameName.toLowerCase().replace(/ /g,'') + '.json' , JSON.stringify(gameJSON), (err) => {
-			if (err){
-				console.log(err);
-				interaction.reply('Error adding the game to the list.');
+			games.forEach(game => {
+				if (game.content.toLowerCase().replace(/ /g,'') == gameName.toLowerCase().replace(/ /g,''))
+					alreadyRegistered = true;
+			})
+			if(alreadyRegistered){
+				interaction.reply(gameName + ' is already registered.');
 			}
-			else {
-				console.log("File written successfully!\n")
+			else{
+				gameChannel.send(gameName + '@' + maxPlayers);
 				interaction.reply(gameName +  ' has been registered to the game list!');
-			}});
+			}
 			
-
-		}
-
+		})
 	},
 };

@@ -1,10 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { ActionRowBuilder, Events, StringSelectMenuBuilder } = require('discord.js');
-const fs = require('node:fs');
-const path = require('node:path');
-const gamesPath = path.join(__dirname, '../gamelist');
-const attendancePath = path.join(__dirname, '../attendance');
-const votesPath = path.join(__dirname, '../votes');
+require('dotenv').config();
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -12,94 +7,80 @@ module.exports = {
 		.setDescription('Check the current status of the vote for this week'),
 	
 	async execute(interaction) {
-		console.log("vote closeout");
-		const attendanceFiles = fs.readdirSync(attendancePath).filter(file => file.endsWith('.json'));
+		const client = interaction.client;
+		const votesChannel = client.channels.cache.get(process.env.VOTES_ID);
+		const attendanceChannel = client.channels.cache.get(process.env.ATTENDANCE_ID);
+		const gameChannel = client.channels.cache.get(process.env.GAMELIST_ID);
 		var hereVotes = [];
 		var totalVotes = [];
-		const gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'));
+		var attendeesHere = false;
 		
-		for (game of gameFiles){
-			const { name } = require(gamesPath + '/' + game);
+		
+		
+		gameChannel.messages.fetch().then(games => {
+			console.log('Received ' + games.size + ' games');
+			//Iterate through the messages here with the variable "messages".
+			games.forEach(game => {
+							const name = game.content.substring(0, game.content.indexOf('@'));
+							hereVotes.push([name, 0]);
+							totalVotes.push([name, 0]);
+						})
 			
-			hereVotes.push([name, 0])
-		}
-		for (game of gameFiles){
-			const { name } = require(gamesPath + '/' + game);
-			
-			totalVotes.push([name, 0])
-		}
-		console.log(hereVotes);
-		
-		
-		const voteFiles = fs.readdirSync(votesPath).filter(file => file.endsWith('.json'));
-		for (voter of voteFiles)
-		{
-			console.log(voter);
-
-			const { votes } = require(votesPath + '/' + voter);
-			console.log(votes);
-			
-			for (voteTotal of totalVotes){
-				for (vote of votes){
-					if (voteTotal[0] == vote)
-						voteTotal[1] += 1;
-				}
-			}
-
-			console.log(hereVotes);
-		}
-		
-		for (attendee of attendanceFiles)
-		{
-			console.log(attendee);
-
-			const { votes } = require(votesPath + '/' + attendee);
-			console.log(votes);
-			
-			for (voteHereTotal of hereVotes){
-				for (voteHere of votes){
-					if (voteHereTotal[0] == voteHere)
-						voteHereTotal[1] += 1;
-				}
-			}
-
-			console.log(hereVotes);
-		}
-		
-		var votesHereSorted = '';
-		var maxVotes = 0;
-		for (gameVotes of hereVotes){
-			if (gameVotes[1] > maxVotes)
-				maxVotes = gameVotes[1];
-		}
-		for (let i = maxVotes; i > 0; i--) {
-			for (gameVotes of hereVotes){
-				if (gameVotes[1] == i){
-					votesHereSorted += gameVotes[0] + ': ' + gameVotes[1] + '\n';
-				}
-			}
-		}
-		
-		var votesTotalSorted = '';
-		var maxVotes = 0;
-		for (gameHereVotes of totalVotes){
-			if (gameHereVotes[1] > maxVotes)
-				maxVotes = gameHereVotes[1];
-		}
-		for (let i = maxVotes; i > 0; i--) {
-			for (gameHereVotes of totalVotes){
-				if (gameHereVotes[1] == i){
-					votesTotalSorted += gameHereVotes[0] + ': ' + gameHereVotes[1] + '\n';
-				}
-			}
-		}
-		
-		
-		
-		if (attendanceFiles.length > 0) {
-			interaction.reply('The overall votes are:\n' + votesTotalSorted + '\nThe votes for this week\'s currently logged attendees are:\n' + votesHereSorted);
-		}
-		else interaction.reply('Nobody has been marked here for this week, but the stored votes are:\n' + votesTotalSorted)
-		
+			const voteThreads = votesChannel.threads.cache
+			const voterNum = voteThreads.size;
+			var i = 1;
+			attendanceChannel.messages.fetch().then(attendees => {
+				voteThreads.forEach(voter => {
+					voter.messages.fetch().then(votes => {
+							
+						votes.forEach(vote => {
+							for (gameVotes of totalVotes) if (gameVotes[0] == vote.content) gameVotes[1] += 1;
+						})
+						
+						votes.forEach(vote => {
+							attendees.forEach(attendee =>{
+								if (vote.channel.name == attendee.content) for (hereGameVotes of hereVotes) if (hereGameVotes[0] == vote.content) hereGameVotes[1] +=1;
+							})
+						})
+						
+						if (i == voterNum){
+							var votesHereSorted = '';
+							var maxVotes = 0;
+							for (gameHereVotes of hereVotes){
+								if (gameHereVotes[1] > maxVotes)
+									maxVotes = gameHereVotes[1];
+							}
+							for (let i = maxVotes; i > 0; i--) {
+								for (gameHereVotes of hereVotes){
+									if (gameHereVotes[1] == i){
+										votesHereSorted += gameHereVotes[0] + ': ' + gameHereVotes[1] + '\n';
+									}
+								}
+							}
+							
+							var votesTotalSorted = '';
+							var maxVotes = 0;
+							for (gameVotes of totalVotes){
+								if (gameVotes[1] > maxVotes)
+									maxVotes = gameVotes[1];
+							}
+							for (let i = maxVotes; i > 0; i--) {
+								for (gameVotes of totalVotes){
+									if (gameVotes[1] == i){
+										votesTotalSorted += gameVotes[0] + ': ' + gameVotes[1] + '\n';
+									}
+								}
+							}
+							
+							if (attendees.size) {
+								interaction.reply('The overall votes are:\n' + votesTotalSorted + '\nThe votes for this week\'s currently logged attendees are:\n' + votesHereSorted);
+							}
+							else interaction.reply('Nobody has been marked here for this week, but the stored votes are:\n' + votesTotalSorted)
+						}
+						i += 1;
+					})
+				})
+			})
+		})		
 	}
 };

@@ -1,7 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const fs = require('node:fs');
-const path = require('node:path');
-const gamesPath = path.join(__dirname, '../gamelist');
+require('dotenv').config();
 
 
 module.exports = {
@@ -15,31 +13,27 @@ module.exports = {
 				.setRequired(true)),
 				
 	async execute(interaction) {
+		const client = interaction.client;
 		const gameName = interaction.options.getString('name');
-		const gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'));
 		var gameExists = false;
 		
-		for (const file of gameFiles) {
-			if(file.toLowerCase().replace(/ /g,'') == gameName.toLowerCase().replace(/ /g,'')+'.json')
-			{
-				gameExists = true;
-			}
+		const gameChannel = client.channels.cache.get(process.env.GAMELIST_ID);
+		gameChannel.messages.fetch({ limit: 100 }).then(games => {
+			console.log('Received ' + games.size + ' games');
+			//Iterate through the messages here with the variable "messages".
 			
-		}
-		
-		if(gameExists){
-			fs.unlink(gamesPath + '/' + gameName.toLowerCase().replace(/ /g,'') + '.json', (err) => {
-			if (err){
-				console.log(err);
-				interaction.reply('Error removing the game from the list.');
-			}
-			else {
+			games.forEach(game => {
+				if (game.content.substring(0, game.content.indexOf('@')).toLowerCase().replace(/ /g,'') == gameName.toLowerCase().replace(/ /g,'')){
+					gameExists = true;
+					game.delete(1000);
+				}
+			})
+			if(gameExists){
 				interaction.reply(gameName + ' has been removed from the game list.');
-			}});
-		}
-		else{
-			interaction.reply(gameName + ' is not on the game list.');
-		}
-
+			}
+			else{
+				interaction.reply(gameName + ' is not on the game list.');
+			}
+		})
 	},
 };

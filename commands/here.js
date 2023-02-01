@@ -1,43 +1,34 @@
 const { SlashCommandBuilder } = require('discord.js');
-const fs = require('node:fs');
-const path = require('node:path');
-const attendancePath = path.join(__dirname, '../attendance');
-const votesPath = path.join(__dirname, '../votes');
+require('dotenv').config();
 
 
 module.exports = {
-	// Take in game name and max players
 	data: new SlashCommandBuilder()
 		.setName('here')
 		.setDescription('Logs attendance for this Friday'),
 				
 	async execute(interaction) {
+		const client = interaction.client;
+		const votesChannel = client.channels.cache.get(process.env.VOTES_ID);
+		const attendanceChannel = client.channels.cache.get(process.env.ATTENDANCE_ID);
+		var alreadyHere = false;
 		
-		const votes = fs.readdirSync(votesPath).filter(file => file.endsWith('.json'));
-		const username = interaction.user.username;
-		console.log(username);
-		var voted = false;
-		
-		for (vote of votes){
-			if (username + '.json' == vote)
-				voted = true;
-		}	
-		
-		if (!voted)
-			interaction.reply({content : 'You haven\'t voted!!', ephemeral : true});
-		else
-		{
-			fs.writeFile(attendancePath + '/' + username + '.json' , JSON.stringify({"here" : true}), (err) => {
-			if (err){
-				console.log(err);
-				interaction.reply({content : 'Error logging attendance.', ephemeral : true});
-			}
-			else {
-				console.log("File written successfully!\n")
+		const voted = await votesChannel.threads.cache.find(x => x.name === interaction.user.username);
+		if (!voted) interaction.reply({content : 'You haven\'t voted!!', ephemeral : true});
+		else {
+			attendanceChannel.messages.fetch({ limit: 100 }).then(attendees => {
+				console.log('Received ' + attendees.size + ' attendees');
+				//Iterate through the messages here with the variable "messages".
+				
+				attendees.forEach(attendee => {
+					if (attendee.content == interaction.user.username)
+						alreadyHere = true;
+					})
+				
+				if (!alreadyHere) attendanceChannel.send(interaction.user.username);
+				
 				interaction.reply({content : 'Your attendance has been logged.', ephemeral : true});
-			}});
+			})
 		}
-		
-
 	},
 };

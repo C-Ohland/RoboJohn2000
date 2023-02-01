@@ -1,8 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { ActionRowBuilder, Events, StringSelectMenuBuilder } = require('discord.js');
-const fs = require('node:fs');
-const path = require('node:path');
-const gamesPath = path.join(__dirname, '../gamelist');
+require('dotenv').config();
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -10,25 +8,27 @@ module.exports = {
 		.setDescription('Provides a menu for voting on activities'),
 	
 	async execute(interaction) {
-		const gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'));
-
-		const menuOptions = new StringSelectMenuBuilder()
-			.setCustomId('voteSelect')
-			.setPlaceholder('Nothing selected')
-			.setMinValues(1)
-			.setMaxValues(gameFiles.length)
+		const client = interaction.client;
+		const gameName = interaction.options.getString('name');
+		const gameChannel = client.channels.cache.get(process.env.GAMELIST_ID);
+		gameChannel.messages.fetch({ limit: 100 }).then(games => {
+			console.log('Received ' + games.size + ' games');
 			
-		
-		if (gameFiles.length > 0){
-			for (const file of gameFiles) {
-				const { name } = require(gamesPath + '/' + file);
-				menuOptions.addOptions({label: name, description: name, value: name});
-			}
+			const menuOptions = new StringSelectMenuBuilder()
+				.setCustomId('voteSelect')
+				.setPlaceholder('Nothing selected')
+				.setMinValues(1)
+				.setMaxValues(games.size)
 			
-			const selectMenu = new ActionRowBuilder().addComponents(menuOptions);
-				
-			await interaction.reply({ content: 'Please select the games you would like to play:', ephemeral: true, components: [selectMenu] });
-		}
-		else interaction.reply('There are currently no games on the gamelist.');
+				if (games.size){
+					games.forEach(game => {
+						menuOptions.addOptions({label: game.content.substring(0, game.content.indexOf('@')), description: game.content.substring(0, game.content.indexOf('@')), value: game.content.substring(0, game.content.indexOf('@'))});
+					})	
+					const selectMenu = new ActionRowBuilder().addComponents(menuOptions);
+					
+					interaction.reply({ content: 'Please select the games you would like to play:', ephemeral: true, components: [selectMenu] });
+				}
+				else interaction.reply('There are currently no games on the gamelist.');	
+		})
 	}
 };

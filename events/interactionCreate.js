@@ -1,7 +1,5 @@
-const { Events } = require('discord.js');
-const fs = require('node:fs');
-const path = require('node:path');
-const votesPath = path.join(__dirname, '../votes');
+const { Events, GuildTextThreadManager} = require('discord.js');
+
 
 module.exports = {
 	name: Events.InteractionCreate,
@@ -23,16 +21,22 @@ module.exports = {
 		}
 		// listen for vote select menu inputs
 		else if (interaction.isStringSelectMenu()) {
-			const voteJSON = {"user" : interaction.user.username, "votes" : interaction.values}
-			fs.writeFile(votesPath + '/' + interaction.user.username + '.json' , JSON.stringify(voteJSON), (err) => {
-			if (err){
-				console.log(err);
-				interaction.reply('Error saving your votes.');
+			const client = interaction.client
+			const votesChannel = client.channels.cache.get(process.env.VOTES_ID);
+			const pastVotes = await votesChannel.threads.cache.find(x => x.name === interaction.user.username);
+			if (pastVotes) pastVotes.delete();
+			
+			const voteThread = await votesChannel.threads.create({
+				name: interaction.user.username,
+				autoArchiveDuration: 10080,
+				reason: 'votes submitted',
+			});
+			
+			for (vote of interaction.values){
+				voteThread.send(vote)
 			}
-			else {
-				console.log("File written successfully!\n")
-				interaction.update({ content: 'Thanks for voting!', ephemeral : true, components: [] });
-			}});
+
+			interaction.update({ content: 'Your votes have been saved.', ephemeral : true, components: [] });
 		}
 		else return;
 	},

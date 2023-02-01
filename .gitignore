@@ -1,9 +1,3 @@
 node_modules
 config.json
 .env
-attendance/*
-gamelist/*
-votes/*
-!attendance/.gitkeep
-!gamelist/.gitkeep
-!votes/.gitkeep

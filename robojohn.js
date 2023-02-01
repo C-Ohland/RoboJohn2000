@@ -1,17 +1,13 @@
 // Require the necessary discord.js classes
 const cron = require('node-cron')
+const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
-const gamesPath = path.join(__dirname, '/gamelist');
-const attendancePath = path.join(__dirname, '/attendance');
-const votesPath = path.join(__dirname, '/votes');
-const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 require('dotenv').config();
-var gameList;
 
 
 // Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent] });
 
 
 // Retreive slash commands
@@ -49,7 +45,10 @@ for (const file of eventFiles) {
 client.login(process.env.DISCORD_TOKEN);
 setTimeout(() => {
 	client.user.setActivity('Arma 2');
-},5000);
+	votesChannel = client.channels.cache.get(process.env.VOTES_ID);
+	attendanceChannel = client.channels.cache.get(process.env.ATTENDANCE_ID);
+	gameChannel = client.channels.cache.get(process.env.GAMELIST_ID);
+},2000);
 
 
 // Timed voting closeout warning
@@ -67,104 +66,91 @@ var voteWarning = cron.schedule('58 18 * * Fridays', () => {
 var votePrompt = cron.schedule('0 8 * * Mondays', () => {
 	console.log("vote prompt");
 	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
+	var gameList = '';
 	
-	gameList = '';
-	gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'));
-	if (gameFiles.length){
-		for (const file of gameFiles) {
-			const { name } = require(gamesPath + '/' + file);
-			gameList = gameList + name + '\n';
+	gameChannel.messages.fetch().then(games => {
+		if (games.size){
+			games.forEach(game => {
+				gameList = gameList + game.content.substring(0, game.content.indexOf('@')) + '\n';
+			})
 		}
-	}
-	else {
-		gameList = 'There are currently no games on the game list, so make sure to add some and then vote!'
-	}
-	
-	targetChannel.send('Make sure to update your votes with \/vote this week! Otherwise, I\'ll use your existing votes. The games currently up for vote are:\n' + gameList);
-	
+		else {
+			gameList = 'There are currently no games on the game list, so make sure to add some and then vote!'
+		}
+		targetChannel.send('Make sure to update your votes with \/vote this week! Otherwise, I\'ll use your existing votes. The games currently up for vote are:\n' + gameList);
+	})
 }, {
 	scheduled : true,
 	timezone: "America/Chicago"
 });
 
 //Timed vote closeout
-var votePrompt = cron.schedule('18 19 * * Fridays', () => {
+//var votePrompt = cron.schedule('18 19 * * Fridays', () => {
+setTimeout(() => {
 	console.log("vote closeout");
 	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
-	const attendanceFiles = fs.readdirSync(attendancePath).filter(file => file.endsWith('.json'));
-	var tallyVotes = [];
-	const gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'));
-	for (game of gameFiles){
-		const { name, maxPlayers } = require(gamesPath + '/' + game);
-		
-		if (maxPlayers > attendanceFiles.length)
-			tallyVotes.push([name, 0])
-	}
-	console.log(tallyVotes);
-	
-	
-	
-	for (attendee of attendanceFiles)
-	{
-		console.log(attendee);
-
-		const { votes } = require(votesPath + '/' + attendee);
-		console.log(votes);
-		
-		for (voteTotal of tallyVotes){
-			for (vote of votes){
-				if (voteTotal[0] == vote)
-					voteTotal[1] += 1;
-			}
-		}
-		
-		fs.unlink(attendancePath + '/' + attendee, (err) => {
-		if (err){
-			console.log(err);
-		}
-		else {
-			console.log('attendee removed');
-		}});
-
-		console.log(tallyVotes);
-	}
-	
-	var votesSorted = '';
-	var maxVotes = 0;
+	var hereVotes = [];
 	var winningGames = [];
-	for (gameVotes of tallyVotes){
-		if (gameVotes[1] > maxVotes)
-			maxVotes = gameVotes[1];
-	}
-	for (let i = maxVotes; i > 0; i--) {
-		for (gameVotes of tallyVotes){
-			if (gameVotes[1] == i){
-				votesSorted += gameVotes[0] + ': ' + gameVotes[1] + '\n';
-				if (i == maxVotes)
-					winningGames.push(gameVotes[0]);
-			}
-		}
-	}
+	gameChannel.messages.fetch().then(games => {
+		console.log('Received ' + games.size + ' games');
+		//Iterate through the messages here with the variable "messages".
+		
+		const voteThreads = votesChannel.threads.cache
+		var index = 1;
+		attendanceChannel.messages.fetch().then(attendees => {
+			games.forEach(game => {
+				const name = game.content.substring(0, game.content.indexOf('@'));
+				if (game.content.substring(game.content.indexOf('@')+1, game.content.length) > attendees.size) hereVotes.push([name, 0]);
+			})
+			voteThreads.forEach(voter => {
+				attendees.forEach(attendee => {
+					if (attendee.content == voter.name) voter.messages.fetch().then(votes => {
+						votes.forEach(vote => {
+								for (hereGameVotes of hereVotes) if (hereGameVotes[0] == vote.content) hereGameVotes[1] +=1;
+						})
+						
+						if (index == attendees.size){
+							var votesHereSorted = '';
+							var maxVotes = 0;
+							for (gameVotes of hereVotes){
+								if (gameVotes[1] > maxVotes) maxVotes = gameVotes[1];
+							}
+							for (let i = maxVotes; i > 0; i--) {
+								for (gameVotes of hereVotes){
+									if (gameVotes[1] == i){
+										votesHereSorted += gameVotes[0] + ': ' + gameVotes[1] + '\n';
+										if (i == maxVotes) winningGames.push(gameVotes[0]);
+									}
+								}
+							}
+							targetChannel.send('Time\'s up! Here are the tallied votes for games suitable for the number of attendees today: \n' + votesHereSorted);
+
+							if (winningGames.length > 1){
+								winner = Math.floor(Math.random() * winningGames.length);
+								targetChannel.send('With multiple games tied for first, I randomly select '+ winningGames[winner] + ' as the winner for this week.');
+							}
+							else targetChannel.send(winningGames[0] + ' wins!');
+						}
+					})
+					index += 1;
+				})
+			})
+		})
+	})
 	
-	targetChannel.send('Time\'s up! Here are the tallied votes for games suitable for the number of attendees today: \n' + votesSorted);
-	
-	if (winningGames.length > 1){
-		winner = Math.floor(Math.random() * winningGames.length);
-		targetChannel.send('With multiple games tied for first, I randomly select '+ winningGames[winner] + ' as the winner for this week.');
-	}
-	else
-		targetChannel.send(winningGames[0] + ' wins!!');
-	
-}, {
-	scheduled : true,
-	timezone: "America/Chicago"
-});
+
+}, 4000)
+	// }, {
+	// scheduled : true,
+	// timezone: "America/Chicago"
+// });
 
 // RoboJohn goes to sleep
 var votePrompt = cron.schedule('0 21 * * *', () => {
 	console.log("going to sleep");
 	
-	client.user.setStatus('invisible');
+	client.user.setStatus('dnd');
+	client.user.setActivity('Recharging');
 	
 	console.log("zzzz");
 }, {
