@@ -45,9 +45,6 @@ for (const file of eventFiles) {
 client.login(process.env.DISCORD_TOKEN);
 setTimeout(() => {
 	client.user.setActivity('Arma 2');
-	votesChannel = client.channels.cache.get(process.env.VOTES_ID);
-	attendanceChannel = client.channels.cache.get(process.env.ATTENDANCE_ID);
-	gameChannel = client.channels.cache.get(process.env.GAMELIST_ID);
 },2000);
 
 
@@ -63,32 +60,53 @@ var voteWarning = cron.schedule('58 18 * * Fridays', () => {
 });
 
 // Timed prompt to vote
-var votePrompt = cron.schedule('0 8 * * Mondays', () => {
-	console.log("vote prompt");
-	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
-	var gameList = '';
-	
-	gameChannel.messages.fetch().then(games => {
-		if (games.size){
-			games.forEach(game => {
-				gameList = gameList + game.content.substring(0, game.content.indexOf('@')) + '\n';
-			})
-		}
-		else {
-			gameList = 'There are currently no games on the game list, so make sure to add some and then vote!'
-		}
-		targetChannel.send('Make sure to update your votes with \/vote this week! Otherwise, I\'ll use your existing votes. The games currently up for vote are:\n' + gameList);
-	})
+var voteTime = cron.schedule('0 8 * * Mondays', () => {
+	votePrompt();
 }, {
 	scheduled : true,
 	timezone: "America/Chicago"
 });
 
 //Timed vote closeout
-//var votePrompt = cron.schedule('18 19 * * Fridays', () => {
-setTimeout(() => {
+var voteCloseout = cron.schedule('18 19 * * Fridays', () => {
+	console.log('making attempt');
+	voteTally();
+	}, {
+	scheduled : true,
+	timezone: "America/Chicago"
+});
+
+// RoboJohn goes to sleep
+var sleep = cron.schedule('0 21 * * *', () => {
+	console.log("zzzzz");
+	
+	client.user.setStatus('dnd');
+	client.user.setActivity('Recharging');
+	
+}, {
+	scheduled : true,
+	timezone: "America/Chicago"
+});
+
+// RoboJohn wakes up
+var awaken = cron.schedule('0 6 * * *', () => {
+	console.log("Waking up");
+	
+	client.user.setStatus('online');
+	
+	console.log("happy day!");
+	
+}, {
+	scheduled : true,
+	timezone: "America/Chicago"
+});
+
+function voteTally() {
 	console.log("vote closeout");
 	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
+	const gameChannel = client.channels.cache.get(process.env.GAMELIST_ID);
+	const attendanceChannel = client.channels.cache.get(process.env.ATTENDANCE_ID);
+	const votesChannel = client.channels.cache.get(process.env.VOTES_ID);
 	var hereVotes = [];
 	var winningGames = [];
 	gameChannel.messages.fetch().then(games => {
@@ -96,20 +114,28 @@ setTimeout(() => {
 		//Iterate through the messages here with the variable "messages".
 		
 		const voteThreads = votesChannel.threads.cache
-		var index = 1;
+		var index = 0;
 		attendanceChannel.messages.fetch().then(attendees => {
 			games.forEach(game => {
 				const name = game.content.substring(0, game.content.indexOf('@'));
 				if (game.content.substring(game.content.indexOf('@')+1, game.content.length) > attendees.size) hereVotes.push([name, 0]);
+				console.log(hereVotes);
 			})
+			console.log('here1')
 			voteThreads.forEach(voter => {
 				attendees.forEach(attendee => {
+					console.log(attendee.content);
+					index += 1;
 					if (attendee.content == voter.name) voter.messages.fetch().then(votes => {
 						votes.forEach(vote => {
 								for (hereGameVotes of hereVotes) if (hereGameVotes[0] == vote.content) hereGameVotes[1] +=1;
 						})
-						
+						console.log('here2');
+						console.log(hereGameVotes);
+						console.log(attendees.size)
+						console.log(index)
 						if (index == attendees.size){
+							console.log('here3')
 							var votesHereSorted = '';
 							var maxVotes = 0;
 							for (gameVotes of hereVotes){
@@ -132,41 +158,28 @@ setTimeout(() => {
 							else targetChannel.send(winningGames[0] + ' wins!');
 						}
 					})
-					index += 1;
 				})
 			})
 		})
 	})
-	
+}
 
-}, 4000)
-	// }, {
-	// scheduled : true,
-	// timezone: "America/Chicago"
-// });
 
-// RoboJohn goes to sleep
-var votePrompt = cron.schedule('0 21 * * *', () => {
-	console.log("going to sleep");
+function votePrompt() {
+	console.log("vote prompt");
+	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
+	const gameChannel = client.channels.cache.get(process.env.GAMELIST_ID);
+	var gameList = '';
 	
-	client.user.setStatus('dnd');
-	client.user.setActivity('Recharging');
-	
-	console.log("zzzz");
-}, {
-	scheduled : true,
-	timezone: "America/Chicago"
-});
-
-// RoboJohn wakes up
-var votePrompt = cron.schedule('0 6 * * *', () => {
-	console.log("Waking up");
-	
-	client.user.setStatus('online');
-	
-	console.log("happy day!");
-	
-}, {
-	scheduled : true,
-	timezone: "America/Chicago"
-});
+	gameChannel.messages.fetch().then(games => {
+		if (games.size){
+			games.forEach(game => {
+				gameList = gameList + game.content.substring(0, game.content.indexOf('@')) + '\n';
+			})
+		}
+		else {
+			gameList = 'There are currently no games on the game list, so make sure to add some and then vote!'
+		}
+		targetChannel.send('Make sure to update your votes with \/vote this week! Otherwise, I\'ll use your existing votes. The games currently up for vote are:\n' + gameList);
+	})
+}
