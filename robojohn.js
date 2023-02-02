@@ -44,7 +44,7 @@ for (const file of eventFiles) {
 // Log in to Discord with your client's process.env.DISCORD_TOKEN
 client.login(process.env.DISCORD_TOKEN);
 setTimeout(() => {
-	client.user.setActivity('Arma 2');
+	client.user.setActivity('Arma 3');
 },2000);
 
 
@@ -93,6 +93,7 @@ var awaken = cron.schedule('0 6 * * *', () => {
 	console.log("Waking up");
 	
 	client.user.setStatus('online');
+	client.user.setActivity('Arma 3');
 	
 	console.log("happy day!");
 	
