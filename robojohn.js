@@ -60,46 +60,46 @@ var voteWarning = cron.schedule('58 18 * * Fridays', () => {
 });
 
 // Timed prompt to vote
-// var voteTime = cron.schedule('0 8 * * Mondays', () => {
-	// votePrompt();
-// }, {
-	// scheduled : true,
-	// timezone: "America/Chicago"
-// });
+var voteTime = cron.schedule('0 8 * * Mondays', () => {
+	votePrompt();
+}, {
+	scheduled : true,
+	timezone: "America/Chicago"
+});
 
 //Timed vote closeout
-// var voteCloseout = cron.schedule('18 19 * * Fridays', () => {
-	// console.log('making attempt');
-	// voteTally();
-	// }, {
-	// scheduled : true,
-	// timezone: "America/Chicago"
-// });
+var voteCloseout = cron.schedule('18 19 * * Fridays', () => {
+	console.log('making attempt');
+	voteTally();
+	}, {
+	scheduled : true,
+	timezone: "America/Chicago"
+});
 
 // RoboJohn goes to sleep
-// var sleep = cron.schedule('0 21 * * *', () => {
-	// console.log("zzzzz");
+var sleep = cron.schedule('0 21 * * *', () => {
+	console.log("zzzzz");
 	
-	// client.user.setStatus('dnd');
-	// client.user.setActivity('Recharging');
+	client.user.setStatus('dnd');
+	client.user.setActivity('Recharging');
 	
-// }, {
-	// scheduled : true,
-	// timezone: "America/Chicago"
-// });
+}, {
+	scheduled : true,
+	timezone: "America/Chicago"
+});
 
 // RoboJohn wakes up
-// var awaken = cron.schedule('0 6 * * *', () => {
-	// console.log("Waking up");
+var awaken = cron.schedule('0 6 * * *', () => {
+	console.log("Waking up");
 	
-	// client.user.setStatus('online');
+	client.user.setStatus('online');
 	
-	// console.log("happy day!");
+	console.log("happy day!");
 	
-// }, {
-	// scheduled : true,
-	// timezone: "America/Chicago"
-// });
+}, {
+	scheduled : true,
+	timezone: "America/Chicago"
+});
 
 function voteTally() {
 	console.log("vote closeout");
