@@ -46,7 +46,7 @@ client.login(process.env.DISCORD_TOKEN);
 setTimeout(() => {
 	let date_ob = new Date();
 	console.log('local hour: ' + date_ob.getHours())
-	if (date_ob.getHours() > 2 || date_ob.getHours() < 12) {
+	if (date_ob.getHours() > 2 && date_ob.getHours() < 12) {
 		client.user.setActivity('Recharging');
 		client.user.setStatus('dnd');
 	}
