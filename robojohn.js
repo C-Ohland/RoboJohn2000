@@ -46,7 +46,7 @@ client.login(process.env.DISCORD_TOKEN);
 setTimeout(() => {
 	let date_ob = new Date();
 	if (date_ob.getHours() > 20 || date_ob.getHours() < 6) {
-		client.user.setActivity('');
+		client.user.setActivity('Recharging');
 		client.user.setStatus('dnd');
 		console.log('in here')
 	}
