@@ -3,7 +3,7 @@ require('dotenv').config();
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('votestatus')
+		.setName('tallyvotes')
 		.setDescription('Check the current status of the vote for this week'),
 	
 	async execute(interaction) {

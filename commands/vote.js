@@ -11,7 +11,7 @@ module.exports = {
 		const client = interaction.client;
 		const gameName = interaction.options.getString('name');
 		const gameChannel = client.channels.cache.get(process.env.GAMELIST_ID);
-		gameChannel.messages.fetch({ limit: 100 }).then(games => {
+		gameChannel.messages.fetch().then(games => {
 			console.log('Received ' + games.size + ' games');
 			
 			const menuOptions = new StringSelectMenuBuilder()
@@ -22,7 +22,7 @@ module.exports = {
 			
 				if (games.size){
 					games.forEach(game => {
-						menuOptions.addOptions({label: game.content.substring(0, game.content.indexOf('@')), description: game.content.substring(0, game.content.indexOf('@')), value: game.content.substring(0, game.content.indexOf('@'))});
+						menuOptions.addOptions({label: game.content.substring(0, game.content.indexOf('@')), description: '', value: game.content.substring(0, game.content.indexOf('@'))});
 					})	
 					const selectMenu = new ActionRowBuilder().addComponents(menuOptions);
 					

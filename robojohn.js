@@ -44,7 +44,14 @@ for (const file of eventFiles) {
 // Log in to Discord with your client's process.env.DISCORD_TOKEN
 client.login(process.env.DISCORD_TOKEN);
 setTimeout(() => {
-	client.user.setActivity('Arma 3');
+	let date_ob = new Date();
+	if (date_ob.getHours() > 20 || date_ob.getHours() < 6) {
+		client.user.setActivity('');
+		client.user.setStatus('dnd');
+		console.log('in here')
+	}
+	else
+		client.user.setActivity('Arma 3');
 },2000);
 
 
