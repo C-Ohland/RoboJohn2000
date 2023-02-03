@@ -48,11 +48,12 @@ setTimeout(() => {
 	if (date_ob.getHours() > 20 || date_ob.getHours() < 6) {
 		client.user.setActivity('Recharging');
 		client.user.setStatus('dnd');
-		console.log('in here')
 	}
-	else
+	else {
 		client.user.setActivity('Arma 3');
-},2000);
+		client.user.setStatus('online');
+	}
+},6000);
 
 
 // Timed voting closeout warning
