@@ -22,7 +22,7 @@ module.exports = {
 			
 				if (games.size){
 					games.forEach(game => {
-						menuOptions.addOptions({label: game.content.substring(0, game.content.indexOf('@')), description: '', value: game.content.substring(0, game.content.indexOf('@'))});
+						menuOptions.addOptions({label: game.content.substring(0, game.content.indexOf('@')), description: ' ', value: game.content.substring(0, game.content.indexOf('@'))});
 					})	
 					const selectMenu = new ActionRowBuilder().addComponents(menuOptions);
 					
