@@ -14,7 +14,7 @@ module.exports = {
 		var alreadyHere = false;
 		
 		const voted = await votesChannel.threads.cache.find(x => x.name === interaction.user.username);
-		if (!voted) interaction.reply({content : 'You haven\'t voted!!', ephemeral : true});
+		if (!voted) interaction.reply({content : 'You can\'t log your attendance until you have recorded votes.', ephemeral : true});
 		else {
 			attendanceChannel.messages.fetch({ limit: 100 }).then(attendees => {
 				console.log('Received ' + attendees.size + ' attendees');
