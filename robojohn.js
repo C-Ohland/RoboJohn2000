@@ -59,7 +59,7 @@ setTimeout(() => {
 var voteWarning = cron.schedule('58 18 * * Fridays', () => {
 	console.log("vote warning");
 	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
-	targetChannel.send('Concluding vote based on current attendees in 20 minutes! Make sure to get in any last-minute votes and use \/here to log your attendance for this weeks so your votes are counted.');
+	targetChannel.send('Concluding vote based on current attendees in 20 minutes! Make sure to get in any last-minute votes and use \/here to log your attendance for this week so your votes are counted.');
 	
 }, {
 	scheduled : true,
