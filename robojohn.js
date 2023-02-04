@@ -45,7 +45,6 @@ for (const file of eventFiles) {
 client.login(process.env.DISCORD_TOKEN);
 setTimeout(() => {
 	let date_ob = new Date();
-	console.log('local hour: ' + date_ob.getHours())
 	if (date_ob.getHours() > 2 && date_ob.getHours() < 12) {
 		client.user.setActivity('Recharging');
 		client.user.setStatus('dnd');
@@ -77,7 +76,7 @@ var voteTime = cron.schedule('0 8 * * Mondays', () => {
 });
 
 //Timed vote closeout
-var voteCloseout = cron.schedule('18 19 * * Fridays', () => {
+var voteCloseout = cron.schedule('*/20 * * * * *', () => {
 	console.log('making attempt');
 	voteTally();
 	}, {
@@ -135,15 +134,16 @@ function voteTally() {
 			voteThreads.forEach(voter => {
 				attendees.forEach(attendee => {
 					console.log(attendee.content);
-					index += 1;
 					if (attendee.content == voter.name) voter.messages.fetch().then(votes => {
 						votes.forEach(vote => {
 								for (hereGameVotes of hereVotes) if (hereGameVotes[0] == vote.content) hereGameVotes[1] +=1;
 						})
+						console.log(voteThreads.size);
 						console.log('here2');
 						console.log(hereGameVotes);
 						console.log(attendees.size)
 						console.log(index)
+						index = index + 1;
 						if (index == attendees.size){
 							console.log('here3')
 							var votesHereSorted = '';
