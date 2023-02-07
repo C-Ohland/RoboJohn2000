@@ -76,7 +76,7 @@ var voteTime = cron.schedule('0 8 * * Mondays', () => {
 });
 
 //Timed vote closeout
-var voteCloseout = cron.schedule('18 19 * * Fridays', () => {
+var voteCloseout = cron.schedule('*/20 * * * * *', () => {
 	console.log('making attempt');
 	voteTally();
 	}, {
@@ -167,6 +167,7 @@ function voteTally() {
 							}
 							else targetChannel.send(winningGames[0] + ' wins!');
 						}
+						attendee.delete();
 					})
 				})
 			})
