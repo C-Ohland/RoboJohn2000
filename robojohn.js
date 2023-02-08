@@ -76,7 +76,7 @@ var voteTime = cron.schedule('0 8 * * Mondays', () => {
 });
 
 //Timed vote closeout
-var voteCloseout = cron.schedule('*/20 * * * * *', () => {
+var voteCloseout = cron.schedule('18 19 * * Fridays', () => {
 	console.log('making attempt');
 	voteTally();
 	}, {
