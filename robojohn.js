@@ -57,7 +57,7 @@ setTimeout(() => {
 
 
 // Timed voting closeout warning
-var voteWarning = cron.schedule('58 18 * * Fridays', () => {
+var voteWarning = cron.schedule('38 18 * * Fridays', () => {
 	console.log("vote warning");
 	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
 	targetChannel.send('Concluding vote based on current attendees in 20 minutes! Make sure to get in any last-minute votes and use \/here to log your attendance for this week so your votes are counted.');
@@ -76,9 +76,9 @@ var voteTime = cron.schedule('0 8 * * Mondays', () => {
 });
 
 //Timed vote closeout
-var voteCloseout = cron.schedule('18 19 * * Fridays', () => {
+var voteCloseout = cron.schedule('58 18 * * Fridays', () => {
 	console.log('making attempt');
-	voteTally();
+	voteTally(true);
 	}, {
 	scheduled : true,
 	timezone: "America/Chicago"
@@ -110,7 +110,16 @@ var awaken = cron.schedule('0 6 * * *', () => {
 	timezone: "America/Chicago"
 });
 
-function voteTally() {
+// RoboJohn lets people know what's likely to be picked
+var likely game = cron.schedule('0 18 * * Thursdays', () => {
+	voteTally(false);
+	
+}, {
+	scheduled : true,
+	timezone: "America/Chicago"
+});
+
+function voteTally(final) {
 	console.log("vote closeout");
 	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
 	const gameChannel = client.channels.cache.get(process.env.GAMELIST_ID);
@@ -127,7 +136,7 @@ function voteTally() {
 		attendanceChannel.messages.fetch().then(attendees => {
 			games.forEach(game => {
 				const name = game.content.substring(0, game.content.indexOf('@'));
-				if (game.content.substring(game.content.indexOf('@')+1, game.content.length) > attendees.size) hereVotes.push([name, 0]);
+				if (game.content.substring(game.content.indexOf('@')+1, game.content.length) >= attendees.size) hereVotes.push([name, 0]);
 				console.log(hereVotes);
 			})
 			console.log('here1')
@@ -151,7 +160,7 @@ function voteTally() {
 							for (gameVotes of hereVotes){
 								if (gameVotes[1] > maxVotes) maxVotes = gameVotes[1];
 							}
-							for (let i = maxVotes; i > 0; i--) {
+							for (let i = maxVotes; i > maxVotes-3; i--) {
 								for (gameVotes of hereVotes){
 									if (gameVotes[1] == i){
 										votesHereSorted += gameVotes[0] + ': ' + gameVotes[1] + '\n';
@@ -159,13 +168,19 @@ function voteTally() {
 									}
 								}
 							}
-							targetChannel.send('Time\'s up! Here are the tallied votes for games suitable for the number of attendees today: \n' + votesHereSorted);
-
-							if (winningGames.length > 1){
-								winner = Math.floor(Math.random() * winningGames.length);
-								targetChannel.send('With multiple games tied for first, I randomly select '+ winningGames[winner] + ' as the winner for this week.');
+							
+							if (final){
+								targetChannel.send('Time\'s up! Here are the tallied votes for games suitable for the number of attendees today: \n' + votesHereSorted);
+								if (winningGames.length > 1){
+									winner = Math.floor(Math.random() * winningGames.length);
+									targetChannel.send('With multiple games tied for first, I randomly select '+ winningGames[winner] + ' as the winner for this week.');
+								}
+								else targetChannel.send(winningGames[0] + ' wins!');
 							}
-							else targetChannel.send(winningGames[0] + ' wins!');
+							else {
+								targetChannel.send('Current attendees\' votes are: \n' + votesHereSorted + '\nIf you\'re interested in one of the leading games, make sure to /vote and /here before tomorrow night.')
+							}
+							
 						}
 						attendee.delete();
 					})
