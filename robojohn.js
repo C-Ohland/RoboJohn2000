@@ -111,7 +111,7 @@ var awaken = cron.schedule('0 6 * * *', () => {
 });
 
 // RoboJohn lets people know what's likely to be picked
-var likely game = cron.schedule('0 18 * * Thursdays', () => {
+var likelyGame = cron.schedule('0 18 * * Thursdays', () => {
 	voteTally(false);
 	
 }, {
