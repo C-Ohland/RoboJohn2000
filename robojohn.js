@@ -182,7 +182,7 @@ function voteTally(final) {
 							}
 							
 						}
-						attendee.delete();
+						if (final) attendee.delete();
 					})
 				})
 			})
