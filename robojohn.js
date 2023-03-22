@@ -119,6 +119,25 @@ var likelyGame = cron.schedule('0 18 * * Thursdays', () => {
 	timezone: "America/Chicago"
 });
 
+// RoboJohn lets people know what's likely to be picked
+var likelyGame = cron.schedule('0 18 * * Thursdays', () => {
+	voteTally(false);
+	
+}, {
+	scheduled : true,
+	timezone: "America/Chicago"
+});
+
+// Reset the vote thread timers
+var resetVotes = cron.schedule('0 2 */3 * *', () => {
+	console.log("attempting to refresh votes")
+	refreshVotes();
+	
+}, {
+	scheduled : true,
+	timezone: "America/Chicago"
+});
+
 function voteTally(final) {
 	console.log("vote closeout");
 	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
@@ -207,5 +226,21 @@ function votePrompt() {
 			gameList = 'There are currently no games on the game list, so make sure to add some and then vote!'
 		}
 		targetChannel.send('Make sure to update your votes with \/vote this week! Otherwise, I\'ll use your existing votes. The games currently up for vote are:\n' + gameList);
+	})
+}
+
+function refreshVotes() {
+	const votesChannel = client.channels.cache.get(process.env.VOTES_ID);
+	const voteThreads = votesChannel.threads.cache
+	const voterNum = voteThreads.size;
+	voteThreads.forEach(voter => {
+		voter.messages.fetch().then(votes => {
+			voter.send("REFRESH_TIMER")
+			votes.forEach(vote => {
+				if (vote.content == "REFRESH_TIMER") {
+					vote.delete()
+				}
+			})
+		})
 	})
 }
