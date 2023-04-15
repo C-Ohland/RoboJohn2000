@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
+const { ActionRowBuilder, Events, StringSelectMenuBuilder } = require('discord.js');
 require('dotenv').config();
 
 
@@ -6,11 +7,7 @@ module.exports = {
 	// Take in game name and max players
 	data: new SlashCommandBuilder()
 		.setName('removegame')
-		.setDescription('Removes a game from the gamelist')
-		.addStringOption(option =>
-			option.setName('name')
-				.setDescription('The name of the game')
-				.setRequired(true)),
+		.setDescription('Removes a game from the gamelist'),
 				
 	async execute(interaction) {
 		const client = interaction.client;
@@ -22,18 +19,21 @@ module.exports = {
 			console.log('Received ' + games.size + ' games');
 			//Iterate through the messages here with the variable "messages".
 			
-			games.forEach(game => {
-				if (game.content.substring(0, game.content.indexOf('@')).toLowerCase().replace(/ /g,'') == gameName.toLowerCase().replace(/ /g,'')){
-					gameExists = true;
-					game.delete(1000);
+			const menuOptions = new StringSelectMenuBuilder()
+				.setPlaceholder('Nothing selected')
+				.setMinValues(1)
+				.setMaxValues(1)
+				.setCustomId('Remove Game')
+				
+				if (games.size){
+					games.forEach(game => {
+						menuOptions.addOptions({label: game.content.substring(0, game.content.indexOf('@')), description: ' ', value: game.content.substring(0, game.content.indexOf('@'))});
+					})	
+					const selectMenu = new ActionRowBuilder().addComponents(menuOptions);
+					
+					interaction.reply({ content: 'Please select the game you want to remove:', ephemeral: true, components: [selectMenu] });
 				}
-			})
-			if(gameExists){
-				interaction.reply(gameName + ' has been removed from the game list.');
-			}
-			else{
-				interaction.reply(gameName + ' is not on the game list.');
-			}
+				else interaction.reply('There are currently no games on the gamelist.');	
 		})
 	},
 };

@@ -28,11 +28,14 @@ module.exports = {
 			//Iterate through the messages here with the variable "messages".
 			
 			games.forEach(game => {
-				if (game.content.toLowerCase().replace(/ /g,'') == gameName.toLowerCase().replace(/ /g,''))
+				if (game.content.toLowerCase().replace(/ /g,'').includes(gameName.toLowerCase().replace(/ /g,'')))
 					alreadyRegistered = true;
 			})
-			if(alreadyRegistered){
-				interaction.reply(gameName + ' is already registered.');
+			if(games.size >= 25){
+				interaction.reply({ content: 'We\'ve hit the Discord hard limit of 25 entries. Please free up some space and re-add this activity.', ephemeral : true})
+			}
+			else if(alreadyRegistered){
+				interaction.reply({ content: gameName + ' is already registered.', ephemeral : true});
 			}
 			else{
 				gameChannel.send(gameName + '@' + maxPlayers);
