@@ -4,7 +4,7 @@ require('dotenv').config();
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('vote')
+		.setName('quickvote')
 		.setDescription('Provides a menu for voting on activities'),
 	
 	async execute(interaction) {
