@@ -59,11 +59,14 @@ module.exports = {
 				
 				const client = interaction.client
 				const quickVoteChannel = client.channels.cache.get(process.env.QUICKVOTE_ID);
-				const pastVotes = await votesChannel.threads.cache.find(x => x.name === interaction.user.username);
+				const pastVotes = await quickVoteChannel.threads.cache.find(x => x.name === interaction.user.username);
 				if (pastVotes) pastVotes.delete();
 				
-				if votesChannel.threads.cache.size == 0 firstVote = true
-				else firstVote = false
+				if (quickVoteChannel.threads.cache.size == 0) {
+					firstVote = true
+				}
+				else 
+					firstVote = false
 				
 				const voteThread = await votesChannel.threads.create({
 					name: interaction.user.username,
@@ -75,8 +78,10 @@ module.exports = {
 					voteThread.send(vote)
 				}
 				
-				if firstVote interaction.update({ content: interaction.user.username + ' has started a quick vote! Use /quickvote to add your votes, then /endquickvote to tally the votes and pick a game.', ephemeral : false, components: [] });
-				else interaction.update({ content: 'Your votes have been saved.', ephemeral : true, components: [] });
+				if (firstVote)
+					interaction.update({ content: interaction.user.username + ' has started a quick vote! Use /quickvote to add your votes, then /endquickvote to tally the votes and pick a game.', ephemeral : false, components: [] });
+				else 
+					interaction.update({ content: 'Your votes have been saved.', ephemeral : true, components: [] });
 			}
 			else interaction.update({content: 'Issue identifying string select menu type, tell Carson', ephemeral : true, components: [] });
 		}
