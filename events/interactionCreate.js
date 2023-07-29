@@ -68,7 +68,7 @@ module.exports = {
 				else 
 					firstVote = false
 				
-				const voteThread = await votesChannel.threads.create({
+				const voteThread = await quickVoteChannel.threads.create({
 					name: interaction.user.username,
 					autoArchiveDuration: 10080,
 					reason: 'votes submitted',
