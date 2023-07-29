@@ -27,7 +27,7 @@ module.exports = {
 				
 				if (!alreadyHere) attendanceChannel.send(interaction.user.username);
 				
-				interaction.reply({content : 'Your attendance has been logged.', ephemeral : true});
+				interaction.reply({content : interaction.user.username + ' will be here this Friday.', ephemeral : false});
 			})
 		}
 	},

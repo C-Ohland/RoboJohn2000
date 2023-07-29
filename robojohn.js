@@ -138,6 +138,16 @@ var resetVotes = cron.schedule('0 2 */3 * *', () => {
 	timezone: "America/Chicago"
 });
 
+// Wipe Attendance
+var resetVotes = cron.schedule('0 23 * * Fridays', () => {
+	console.log("Clearing attendance")
+	clearAttendance();
+	
+}, {
+	scheduled : true,
+	timezone: "America/Chicago"
+});
+
 function voteTally(final) {
 	console.log("vote closeout");
 	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
@@ -158,7 +168,6 @@ function voteTally(final) {
 				if (game.content.substring(game.content.indexOf('@')+1, game.content.length) >= attendees.size) hereVotes.push([name, 0]);
 				console.log(hereVotes);
 			})
-			console.log('here1')
 			voteThreads.forEach(voter => {
 				attendees.forEach(attendee => {
 					console.log(attendee.content);
@@ -167,13 +176,11 @@ function voteTally(final) {
 								for (hereGameVotes of hereVotes) if (hereGameVotes[0] == vote.content) hereGameVotes[1] +=1;
 						})
 						console.log(voteThreads.size);
-						console.log('here2');
 						console.log(hereGameVotes);
 						console.log(attendees.size)
 						console.log(index)
 						index = index + 1;
 						if (index == attendees.size){
-							console.log('here3')
 							var votesHereSorted = '';
 							var maxVotes = 0;
 							for (gameVotes of hereVotes){
@@ -201,7 +208,6 @@ function voteTally(final) {
 							}
 							
 						}
-						if (final) attendee.delete();
 					})
 				})
 			})
@@ -243,4 +249,13 @@ function refreshVotes() {
 			})
 		})
 	})
+}
+
+function clearAttendance() {
+	const attendanceChannel = client.channels.cache.get(process.env.ATTENDANCE_ID);
+	attendanceChannel.messages.fetch().then(attendees => {
+		attendees.forEach(attendee => {
+			attendee.delete();
+		}
+	}
 }
