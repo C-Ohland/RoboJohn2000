@@ -25,7 +25,7 @@ module.exports = {
 			})
 			
 			if (!here) interaction.reply({content : 'You already weren\'t marked as here!', ephemeral : true});
-			else interaction.reply({content : 'You have been removed from the attendance list.', ephemeral : true});
+			else interaction.reply({content : interaction.user.username + 'changed their mind and won\'t be here on Friday.', ephemeral : false});
 		})
 	},
 };
