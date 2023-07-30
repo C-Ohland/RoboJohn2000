@@ -79,7 +79,7 @@ module.exports = {
 				}
 				
 				if (firstVote) {
-					targetChannel.send(interaction.user.username + 'has added quick votes! Use /quickvote to add votes for more players, or /endquickvote to tally the votes.')
+					targetChannel.send(interaction.user.username + ' has added quick votes! Use /quickvote to add votes for more players, or /endquickvote to tally the votes.')
 				}
 				interaction.update({ content: 'Your votes have been saved.', ephemeral : true, components: [] });
 			}
