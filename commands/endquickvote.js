@@ -8,22 +8,25 @@ module.exports = {
 		.setDescription('Provides a menu for voting on activities'),
 	
 	async execute(interaction) {
+		const client = interaction.client;
 		console.log("quickvote closeout");
-		const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
 		const gameChannel = client.channels.cache.get(process.env.GAMELIST_ID);
-		const attendanceChannel = client.channels.cache.get(process.env.ATTENDANCE_ID);
-		const votesChannel = client.channels.cache.get(process.env.VOTES_ID);
+		const quickVoteChannel = client.channels.cache.get(process.env.QUICKVOTE_ID);
 		var voteTotals = [];
 		var winningGames = [];
 		gameChannel.messages.fetch().then(games => {
 			console.log('Received ' + games.size + ' games');
 			//Iterate through the messages here with the variable "messages".
 			
-			const voteThreads = votesChannel.threads.cache
+			const voteThreads = quickVoteChannel.threads.cache
+			if (voteThreads.size == 0) {
+				interaction.reply('There are no current quickvotes to tally.')
+				return
+			}
 			var index = 0;
 			games.forEach(game => {
 				const name = game.content.substring(0, game.content.indexOf('@'));
-				if (game.content.substring(game.content.indexOf('@')+1, game.content.length) >= attendees.size) voteTotals.push([name, 0]);
+				if (game.content.substring(game.content.indexOf('@')+1, game.content.length) >= voteThreads.size) voteTotals.push([name, 0]);
 				console.log(voteTotals);
 			})
 			voteThreads.forEach(voter => {
@@ -48,15 +51,17 @@ module.exports = {
 									if (i == maxVotes) winningGames.push(gameVotes[0]);
 								}
 							}
+							if (i == 1) break
 						}
 						
-						interaction.reply('Quickvote ended! Here are the tallied votes for games suitable for the number of players: \n' + votesSorted);
+						
 						if (winningGames.length > 1){
 							winner = Math.floor(Math.random() * winningGames.length);
-							targetChannel.send('With multiple games tied for first, I randomly select '+ winningGames[winner] + ' as the winner for this week.');
+							interaction.reply('Quickvote ended! Here are the tallied votes for games suitable for the number of players: \n' + votesSorted + '\nWith multiple games tied for first, I spin the wheel and select '+ winningGames[winner] + ' as the winner.');
 						}
-						else targetChannel.send(winningGames[0] + ' wins!');
+						else interaction.reply('Quickvote ended! Here are the tallied votes for games suitable for the number of players: \n' + votesSorted + '\n' + winningGames[0] + ' wins!');
 					}
+					voter.delete()
 				})
 			})
 		})

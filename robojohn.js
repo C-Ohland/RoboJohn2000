@@ -256,6 +256,6 @@ function clearAttendance() {
 	attendanceChannel.messages.fetch().then(attendees => {
 		attendees.forEach(attendee => {
 			attendee.delete();
-		}
-	}
+		})
+	})
 }
