@@ -78,10 +78,10 @@ module.exports = {
 					voteThread.send(vote)
 				}
 				
-				if (firstVote)
-					interaction.update({ content: interaction.user.username + ' has started a quick vote! Use /quickvote to add your votes, then /endquickvote to tally the votes and pick a game.', ephemeral : false, components: [] });
-				else 
-					interaction.update({ content: 'Your votes have been saved.', ephemeral : true, components: [] });
+				if (firstVote) {
+					targetChannel.send(interaction.user.username + 'has added quick votes! Use /quickvote to add votes for more players, or /endquickvote to tally the votes.')
+				}
+				interaction.update({ content: 'Your votes have been saved.', ephemeral : true, components: [] });
 			}
 			else interaction.update({content: 'Issue identifying string select menu type, tell Carson', ephemeral : true, components: [] });
 		}
