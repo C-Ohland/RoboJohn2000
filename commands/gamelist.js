@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
-require('dotenv').config();
+const fs = require('node:fs')
+const path = require('node:path')
 
 
 module.exports = {
@@ -9,22 +10,29 @@ module.exports = {
 		.setDescription('Lists all games in the game list.'),
 				
 	async execute(interaction) {
-		// Create a new client instance
-		const client = interaction.client;
+		if (!fs.existsSync('../server_data/'+interaction.guild_id)){
+			fs.mkdir('../server_data/'+interaction.guild_id)
+			fs.mkdir('../server_data/'+interaction.guild_id+'/gamelist')
+			fs.mkdir('../server_data/'+interaction.guild_id+'/attendance')
+			fs.mkdir('../server_data/'+interaction.guild_id+'/votes')
+			fs.mkdir('../server_data/'+interaction.guild_id+'/quickvotes')
+		}
+		
+		const gamesPath = path.join(__dirname, '../server_data/'+interaction.guild_id+'/gamelist')
+
+		const gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'))
 		var gameList = '';
 		
-		const gameChannel = client.channels.cache.get(process.env.GAMELIST_ID);
-		gameChannel.messages.fetch().then(games => {
-			console.log('Received ' + games.size + ' games');
-			//Iterate through the messages here with the variable "messages".
-			
-			if (games.size){
-				games.forEach(game => gameList = gameList + game.content.substring(0, game.content.indexOf('@')) + '\n')
-				interaction.reply({content : 'The current game list is: \n' + gameList, ephemeral : true});
+		if (gameFiles.length){
+			for (const file of gameFiles) {
+				const { name } = require(gamesPath + '/' + file);
+				gameList = gameList + name + '\n';
 			}
-			else {
-				interaction.reply({content : 'There are currently no games on the game list.', ephemeral : true});
-			}
-		})
+
+			interaction.reply({content : 'The current game list is: \n' + gameList, ephemeral : true});
+		}
+		else {
+			interaction.reply({content : 'There are currently no games on the game list.', ephemeral : true});
+		}
 	},
 };

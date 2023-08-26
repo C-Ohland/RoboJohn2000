@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
-require('dotenv').config();
+const fs = require('node:fs')
+const path = require('node:path')
 
 
 module.exports = {
@@ -18,30 +19,47 @@ module.exports = {
 				.setRequired(true)),
 				
 	async execute(interaction) {
-		const client = interaction.client;
+		if (!fs.existsSync('../server_data/'+interaction.guild_id)){
+			fs.mkdir('../server_data/'+interaction.guild_id)
+			fs.mkdir('../server_data/'+interaction.guild_id+'/gamelist')
+			fs.mkdir('../server_data/'+interaction.guild_id+'/attendance')
+			fs.mkdir('../server_data/'+interaction.guild_id+'/votes')
+			fs.mkdir('../server_data/'+interaction.guild_id+'/quickvotes')
+		}
+		const gamesPath = path.join(__dirname, '../server_data/'+interaction.guild_id+'/gamelist')
+		
 		const gameName = interaction.options.getString('name');
 		const maxPlayers = interaction.options.getInteger('maxplayers');
-		var alreadyRegistered = false;		
-		const gameChannel = client.channels.cache.get(process.env.GAMELIST_ID);
-		gameChannel.messages.fetch({ limit: 100 }).then(games => {
-			console.log('Received ' + games.size + ' games');
-			//Iterate through the messages here with the variable "messages".
-			
-			games.forEach(game => {
-				if (game.content.toLowerCase().replace(/ /g,'').includes(gameName.toLowerCase().replace(/ /g,'')))
-					alreadyRegistered = true;
+		const gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'));
+		
+		var alreadyRegistered = false;
+
+		if(gamesFiles.length >= 25){
+			interaction.reply({ content: 'We\'ve hit the Discord hard limit of 25 entries. Please free up some space and re-add this activity.', ephemeral : true})
+		}
+
+		for (const file of gameFiles) {
+			if (file.toLowerCase().replace(/ /g,'') == gameName.toLowerCase().replace(/ /g,'')+'.json'){
+				alreadyRegistered = true;
+			}
+		}
+
+		if (alreadyRegistered) {
+			interaction.reply(gameName + ' is already registered.');
+		}
+		else {
+			const gameJSON = {"name" : gameName,
+			"maxPlayers" : maxPlayers};
+			fs.writeFile(gamesPath + '/' + gameName.toLowerCase().replace(/ /g,'') + '.json' , JSON.stringify(gameJSON), (err) => {
+				if (err){
+					console.log(err);
+					interaction.reply('Error adding the game to the list.');
+				}
+				else {
+					console.log('File written successfully!\n')
+					interaction.reply(gameName = ' has been registered to the game list!')
+				}
 			})
-			if(games.size >= 25){
-				interaction.reply({ content: 'We\'ve hit the Discord hard limit of 25 entries. Please free up some space and re-add this activity.', ephemeral : true})
-			}
-			else if(alreadyRegistered){
-				interaction.reply({ content: gameName + ' is already registered.', ephemeral : true});
-			}
-			else{
-				gameChannel.send(gameName + '@' + maxPlayers);
-				interaction.reply(gameName +  ' has been registered to the game list!');
-			}
-			
-		})
+		}
 	},
 };

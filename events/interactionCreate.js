@@ -1,5 +1,7 @@
 const { Events, GuildTextThreadManager} = require('discord.js');
-
+require('dotenv').config()
+const fs = require('node:fs');
+const path = require('node:path');
 
 module.exports = {
 	name: Events.InteractionCreate,
@@ -24,68 +26,52 @@ module.exports = {
 			const client = interaction.client
 			const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID)
 			if (interaction.customId == 'Remove Game') {
-				const client = interaction.client
-				const gamesChannel = client.channels.cache.get(process.env.GAMELIST_ID)
-				gamesChannel.messages.fetch({ limit: 100 }).then(games => {
-					games.forEach(game =>{
-						if (game.content.substring(0, game.content.indexOf('@')) == interaction.values) {
-							game.delete()
-							interaction.update({ content: 'Removal successful.', ephemeral : false, components: [] });
-							targetChannel.send(interaction.values + ' has been removed from the game list')
-						}
-					})
+				gamesPath = path.join(__dirname, '../server_data/'+interaction.guild_id+'/gamelist');
+				gameName = interaction.values
+				fs.unlink(gamesPath + '/' + gameName.toLowerCase().replace(/ /g,'') + '.json', (err) => {
+					if (err){
+						console.log(err);
+						interaction.update('Error removing the game from the list.');
+					}
+					else {
+						interaction.update({ content: 'Removal successful.', ephemeral : false, components: [] })
+						targetChannel.send(interaction.values + ' has been removed from the game list')
+					}
 				})
 			}
 			else if (interaction.customId == 'voteSelect'){
 				
-				const client = interaction.client
-				const votesChannel = client.channels.cache.get(process.env.VOTES_ID);
-				const pastVotes = await votesChannel.threads.cache.find(x => x.name === interaction.user.username);
-				if (pastVotes) pastVotes.delete();
-				
-				const voteThread = await votesChannel.threads.create({
-					name: interaction.user.username,
-					autoArchiveDuration: 10080,
-					reason: 'votes submitted',
-				});
-				
-				for (vote of interaction.values){
-					voteThread.send(vote)
+				votesPath = path.join(__dirname, '../server_data/'+interaction.guild_id+'/gamelist')
+				const voteJSON = {"user" : interaction.user.username, "votes" : interaction.values}
+				fs.writeFile(votesPath + '/' + interaction.user.username + '.json' , JSON.stringify(voteJSON), (err) => {
+				if (err){
+					console.log(err)
+					interaction.reply('Error saving your votes.')
 				}
-
-				interaction.update({ content: 'Your votes have been saved.', ephemeral : true, components: [] });
+				else {
+					console.log("File written successfully!\n")
+					interaction.update({ content: 'Your votes have been saved.', ephemeral : true, components: [] })
+				}})
 			}
 			else if (interaction.customId == 'quickVote'){
+				const quickVotePath = path.join(__dirname, '../server_data/'+interaction.guild_id+'/quickvotes');
+				const quickVoteJSON = {"user" : interaction.user.username, "votes" : interaction.values}
+				const quickVoteFiles = fs.readdirSync(quickVotePath).filter(file => file.endsWith('.json'))
 				
-				const client = interaction.client
-				const quickVoteChannel = client.channels.cache.get(process.env.QUICKVOTE_ID);
-				const pastVotes = await quickVoteChannel.threads.cache.find(x => x.name === interaction.user.username);
-				if (pastVotes) pastVotes.delete();
+				targetChannel.send(interaction.user.username + ' has added quick votes! Use /quickvote to add votes for more players, or /endquickvote to tally the votes.')
 				
-				if (quickVoteChannel.threads.cache.size == 0) {
-					firstVote = true
-				}
-				else 
-					firstVote = false
-				
-				const voteThread = await quickVoteChannel.threads.create({
-					name: interaction.user.username,
-					autoArchiveDuration: 10080,
-					reason: 'votes submitted',
-				});
-				
-				for (vote of interaction.values){
-					voteThread.send(vote)
-				}
-				
-				if (firstVote) {
-					targetChannel.send(interaction.user.username + ' has added quick votes! Use /quickvote to add votes for more players, or /endquickvote to tally the votes.')
-				}
-				interaction.update({ content: 'Your votes have been saved.', ephemeral : true, components: [] });
+				fs.writeFile(quickVotePath + '/' + interaction.user.username + '.json' , JSON.stringify(quickVoteJSON), (err) => {
+					if (err){
+						console.log(err)
+						interaction.update('Error saving your quickvotes.')
+					}
+					else {
+						console.log("File written successfully!\n")
+						interaction.update({ content: 'Your quickvotes have been saved.', ephemeral : true, components: [] })
+				}})
 			}
 			else interaction.update({content: 'Issue identifying string select menu type, tell Carson', ephemeral : true, components: [] });
 		}
 		else return;
-		
 	},
 };
