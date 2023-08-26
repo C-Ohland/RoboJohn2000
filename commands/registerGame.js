@@ -37,6 +37,7 @@ module.exports = {
 
 		if(gameFiles.length >= 25){
 			interaction.reply({ content: 'We\'ve hit the Discord hard limit of 25 entries. Please free up some space and re-add this activity.', ephemeral : true})
+			return
 		}
 
 		for (const file of gameFiles) {
