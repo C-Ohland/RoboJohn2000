@@ -9,14 +9,15 @@ module.exports = {
 		.setDescription('Removes user from the attendance log for this week'),
 				
 	async execute(interaction) {
-		if (!fs.existsSync('../server_data/'+interaction.guild_id)){
-			fs.mkdir('../server_data/'+interaction.guild_id)
-			fs.mkdir('../server_data/'+interaction.guild_id+'/gamelist')
-			fs.mkdir('../server_data/'+interaction.guild_id+'/attendance')
-			fs.mkdir('../server_data/'+interaction.guild_id+'/votes')
-			fs.mkdir('../server_data/'+interaction.guild_id+'/quickvotes')
+		guild_id = await interaction.guildId
+		if (!fs.existsSync(path.join(__dirname,'../server_data/'+guild_id))){
+			fs.mkdirSync(path.join(__dirname,'../server_data/'+guild_id))
+			fs.mkdirSync(path.join(__dirname,'../server_data/'+guild_id+'/gamelist'))
+			fs.mkdirSync(path.join(__dirname,'../server_data/'+guild_id+'/attendance'))
+			fs.mkdirSync(path.join(__dirname,'../server_data/'+guild_id+'/votes'))
+			fs.mkdirSync(path.join(__dirname,'../server_data/'+guild_id+'/quickvotes'))
 		}
-		const attendancePath = path.join(__dirname, '../server_data/'+interaction.guild_id+'/attendance')
+		const attendancePath = path.join(__dirname, '../server_data/'+guild_id+'/attendance')
 		const attendanceFiles = fs.readdirSync(attendancePath).filter(file => file.endsWith('.json'))
 		const username = interaction.user.username
 		var here = false

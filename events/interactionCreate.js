@@ -26,7 +26,7 @@ module.exports = {
 			const client = interaction.client
 			const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID)
 			if (interaction.customId == 'Remove Game') {
-				gamesPath = path.join(__dirname, '../server_data/'+interaction.guild_id+'/gamelist');
+				gamesPath = path.join(__dirname, '../server_data/'+interaction.guildId+'/gamelist');
 				gameName = interaction.values
 				fs.unlink(gamesPath + '/' + gameName.toLowerCase().replace(/ /g,'') + '.json', (err) => {
 					if (err){
@@ -41,7 +41,7 @@ module.exports = {
 			}
 			else if (interaction.customId == 'voteSelect'){
 				
-				votesPath = path.join(__dirname, '../server_data/'+interaction.guild_id+'/gamelist')
+				votesPath = path.join(__dirname, '../server_data/'+interaction.guildId+'/gamelist')
 				const voteJSON = {"user" : interaction.user.username, "votes" : interaction.values}
 				fs.writeFile(votesPath + '/' + interaction.user.username + '.json' , JSON.stringify(voteJSON), (err) => {
 				if (err){
@@ -54,7 +54,7 @@ module.exports = {
 				}})
 			}
 			else if (interaction.customId == 'quickVote'){
-				const quickVotePath = path.join(__dirname, '../server_data/'+interaction.guild_id+'/quickvotes');
+				const quickVotePath = path.join(__dirname, '../server_data/'+interaction.guildId+'/quickvotes');
 				const quickVoteJSON = {"user" : interaction.user.username, "votes" : interaction.values}
 				const quickVoteFiles = fs.readdirSync(quickVotePath).filter(file => file.endsWith('.json'))
 				
@@ -63,7 +63,7 @@ module.exports = {
 				fs.writeFile(quickVotePath + '/' + interaction.user.username + '.json' , JSON.stringify(quickVoteJSON), (err) => {
 					if (err){
 						console.log(err)
-						interaction.update('Error saving your quickvotes.')
+						interaction.reply('Error saving your quickvotes.')
 					}
 					else {
 						console.log("File written successfully!\n")

@@ -9,14 +9,15 @@ module.exports = {
 		.setDescription('Provides a menu for voting on activities'),
 	
 	async execute(interaction) {
-		if (!fs.existsSync('../server_data/'+interaction.guild_id)){
-			fs.mkdir('../server_data/'+interaction.guild_id)
-			fs.mkdir('../server_data/'+interaction.guild_id+'/gamelist')
-			fs.mkdir('../server_data/'+interaction.guild_id+'/attendance')
-			fs.mkdir('../server_data/'+interaction.guild_id+'/votes')
-			fs.mkdir('../server_data/'+interaction.guild_id+'/quickvotes')
+		guild_id = await interaction.guildId
+		if (!fs.existsSync(path.join(__dirname,'../server_data/'+guild_id))){
+			fs.mkdirSync(path.join(__dirname,'../server_data/'+guild_id))
+			fs.mkdirSync(path.join(__dirname,'../server_data/'+guild_id+'/gamelist'))
+			fs.mkdirSync(path.join(__dirname,'../server_data/'+guild_id+'/attendance'))
+			fs.mkdirSync(path.join(__dirname,'../server_data/'+guild_id+'/votes'))
+			fs.mkdirSync(path.join(__dirname,'../server_data/'+guild_id+'/quickvotes'))
 		}
-		const gamesPath = path.join(__dirname, '../server_data/'+interaction.guild_id+'/gamelist')
+		const gamesPath = path.join(__dirname, '../server_data/'+guild_id+'/gamelist')
 		const gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'))
 		const menuOptions = new StringSelectMenuBuilder()
 			.setCustomId('voteSelect')
