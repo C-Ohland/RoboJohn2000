@@ -128,16 +128,6 @@ var likelyGame = cron.schedule('0 18 * * Thursdays', () => {
 	timezone: "America/Chicago"
 });
 
-// Reset the vote thread timers
-var resetVotes = cron.schedule('0 2 */3 * *', () => {
-	console.log("attempting to refresh votes")
-	refreshVotes();
-	
-}, {
-	scheduled : true,
-	timezone: "America/Chicago"
-});
-
 // Wipe Attendance
 var resetVotes = cron.schedule('0 23 * * Fridays', () => {
 	console.log("Clearing attendance")
@@ -151,111 +141,95 @@ var resetVotes = cron.schedule('0 23 * * Fridays', () => {
 function voteTally(final) {
 	console.log("vote closeout");
 	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
-	const gameChannel = client.channels.cache.get(process.env.GAMELIST_ID);
-	const attendanceChannel = client.channels.cache.get(process.env.ATTENDANCE_ID);
-	const votesChannel = client.channels.cache.get(process.env.VOTES_ID);
+	const gamesPath = path.join(__dirname, 'server_data/'+process.env.GUILD_ID+'/gamelist')
+	const attendancePath = path.join(__dirname, 'server_data/'+process.env.GUILD_ID+'/attendance')
+	const votesPath = path.join(__dirname, 'server_data/'+process.env.GUILD_ID+'/votes')
+	const gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'))
+	const attendanceFiles = fs.readdirSync(attendancePath).filter(file => file.endsWith('.json'))
+
 	var hereVotes = [];
 	var winningGames = [];
-	gameChannel.messages.fetch().then(games => {
-		console.log('Received ' + games.size + ' games');
-		//Iterate through the messages here with the variable "messages".
-		
-		const voteThreads = votesChannel.threads.cache
-		var index = 0;
-		attendanceChannel.messages.fetch().then(attendees => {
-			games.forEach(game => {
-				const name = game.content.substring(0, game.content.indexOf('@'));
-				if (game.content.substring(game.content.indexOf('@')+1, game.content.length) >= attendees.size) hereVotes.push([name, 0]);
-				console.log(hereVotes);
-			})
-			voteThreads.forEach(voter => {
-				attendees.forEach(attendee => {
-					console.log(attendee.content);
-					if (attendee.content == voter.name) voter.messages.fetch().then(votes => {
-						votes.forEach(vote => {
-								for (hereGameVotes of hereVotes) if (hereGameVotes[0] == vote.content) hereGameVotes[1] +=1;
-						})
-						console.log(voteThreads.size);
-						console.log(hereGameVotes);
-						console.log(attendees.size)
-						console.log(index)
-						index = index + 1;
-						if (index == attendees.size){
-							var votesHereSorted = '';
-							var maxVotes = 0;
-							for (gameVotes of hereVotes){
-								if (gameVotes[1] > maxVotes) maxVotes = gameVotes[1];
-							}
-							for (let i = maxVotes; i > maxVotes-3; i--) {
-								for (gameVotes of hereVotes){
-									if (gameVotes[1] == i){
-										votesHereSorted += gameVotes[0] + ': ' + gameVotes[1] + '\n';
-										if (i == maxVotes) winningGames.push(gameVotes[0]);
-									}
-								}
-							}
-							
-							if (final){
-								targetChannel.send('Time\'s up! Here are the tallied votes for games suitable for the number of attendees today: \n' + votesHereSorted);
-								if (winningGames.length > 1){
-									winner = Math.floor(Math.random() * winningGames.length);
-									targetChannel.send('With multiple games tied for first, I randomly select '+ winningGames[winner] + ' as the winner for this week.');
-								}
-								else targetChannel.send(winningGames[0] + ' wins!');
-							}
-							else {
-								targetChannel.send('Current attendees\' votes are: \n' + votesHereSorted + '\nIf you\'re interested in one of the leading games, make sure to /vote and /here before tomorrow night.')
-							}
-							
-						}
-					})
-				})
-			})
-		})
-	})
+
+	for (game of gameFiles){
+		const { name } = require(gamesPath + '/' + game);
+
+		hereVotes.push([name, 0])
+	}
+
+	for (attendee of attendanceFiles){
+		console.log(attendee);
+
+		const { votes } = require(votesPath + '/' + attendee);
+		console.log(votes);
+	
+		for (voteHereTotal of hereVotes){
+			for (voteHere of votes){
+				if (voteHereTotal[0] == voteHere)
+					voteHereTotal[1] += 1;
+			}
+		}
+
+		console.log(hereVotes);
+	}
+
+	var votesHereSorted = '';
+	var maxVotes = 0;
+	for (gameHereVotes of hereVotes){
+		if (gameHereVotes[1] > maxVotes)
+			maxVotes = gameHereVotes[1];
+	}
+	for (let i = maxVotes; i > 0; i--) {
+		for (gameHereVotes of hereVotes){
+			if (gameHereVotes[1] == i){
+				votesHereSorted += gameHereVotes[0] + ': ' + gameHereVotes[1] + '\n';
+				if (i == maxVotes) winningGames.push(gameVotes[0])
+			}
+		}
+	}
+
+
+	if (final){
+		targetChannel.send('Time\'s up! Here are the tallied votes for games suitable for the number of attendees today: \n' + votesHereSorted);
+		if (winningGames.length > 1){
+			winner = Math.floor(Math.random() * winningGames.length);
+			targetChannel.send('With multiple games tied for first, I randomly select '+ winningGames[winner] + ' as the winner for this week.');
+		}
+		else targetChannel.send(winningGames[0] + ' wins!');
+	}
+	else {
+		targetChannel.send('Current attendees\' votes are: \n' + votesHereSorted + '\nIf you\'re interested in one of the leading games, make sure to /vote and /here before tomorrow night.')
+	}
 }
 
 
 function votePrompt() {
 	console.log("vote prompt");
-	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID);
-	const gameChannel = client.channels.cache.get(process.env.GAMELIST_ID);
+	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID)
+	const gamesPath = path.join(__dirname, 'server_data/'+process.env.GUILD_ID+'/gamelist')
+	const gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'))
 	var gameList = '';
 	
-	gameChannel.messages.fetch().then(games => {
-		if (games.size){
-			games.forEach(game => {
-				gameList = gameList + game.content.substring(0, game.content.indexOf('@')) + '\n';
-			})
+	if (gameFiles.length){
+		for (const file of gameFiles) {
+			const { name } = require(gamesPath + '/' + file);
+			gameList = gameList + name + '\n';
 		}
-		else {
-			gameList = 'There are currently no games on the game list, so make sure to add some and then vote!'
-		}
-		targetChannel.send('Make sure to update your votes with \/vote this week! Otherwise, I\'ll use your existing votes. The games currently up for vote are:\n' + gameList);
-	})
-}
-
-function refreshVotes() {
-	const votesChannel = client.channels.cache.get(process.env.VOTES_ID);
-	const voteThreads = votesChannel.threads.cache
-	const voterNum = voteThreads.size;
-	voteThreads.forEach(voter => {
-		voter.messages.fetch().then(votes => {
-			voter.send("REFRESH_TIMER")
-			votes.forEach(vote => {
-				if (vote.content == "REFRESH_TIMER") {
-					vote.delete()
-				}
-			})
-		})
-	})
+		gameMessage = 'The games currently up for vote are :\n' + gamelist
+	}
+	else {
+		gameMessage = 'There are no games on the gamelist right now, so make sure to add some and then vote!'
+	}
+	targetChannel.send('Make sure to update your votes with \/vote this week! Otherwise I\'ll use your existing votes.' + gameMessage)
 }
 
 function clearAttendance() {
-	const attendanceChannel = client.channels.cache.get(process.env.ATTENDANCE_ID);
-	attendanceChannel.messages.fetch().then(attendees => {
-		attendees.forEach(attendee => {
-			attendee.delete();
+	const attendancePath = path.join(__dirname, 'server_data/'+process.env.GUILD_ID+'/attendance')
+	const attendanceFiles = fs.readdirSync(attendancePath).filter(file => file.endsWith('.json'))
+	const targetChannel = client.channels.cache.get(process.env.CHANNEL_ID)
+
+	for (attendee of attendanceFiles){
+		fs.unlink(attendancePath + '/' + attendee, (err) => {
+			targetChannel.send('Error resetting attendance')
 		})
-	})
+	}
 }
