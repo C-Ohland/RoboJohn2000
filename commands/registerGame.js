@@ -40,7 +40,8 @@ module.exports = {
 		}
 
 		for (const file of gameFiles) {
-			if (file.toLowerCase().replace(/ /g,'') == gameName.toLowerCase().replace(/ /g,'')+'.json'){
+			const { name } = require(gamesPath + '/' + file)
+			if (name == gameName){
 				alreadyRegistered = true;
 			}
 		}
@@ -51,7 +52,7 @@ module.exports = {
 		else {
 			const gameJSON = {"name" : gameName,
 			"maxPlayers" : maxPlayers};
-			fs.writeFile(gamesPath + '/' + gameName.toLowerCase().replace(/ /g,'') + '.json' , JSON.stringify(gameJSON), (err) => {
+			fs.writeFile(gamesPath + '/' + gameName.toLowerCase().replace(/ /g,'').replace(/'/g,'').replace(/./g,'').replace(/:/g,'').replace(/"/g,'').replace(/\//g,'') + '.json' , JSON.stringify(gameJSON), (err) => {
 				if (err){
 					console.log(err);
 					interaction.reply('Error adding the game to the list.');

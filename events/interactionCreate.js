@@ -29,7 +29,7 @@ module.exports = {
 				gamesPath = path.join(__dirname, '../server_data/'+interaction.guildId+'/gamelist');
 				gameName = interaction.values
 				console.log(gameName)
-				fs.unlink(gamesPath + '/' + gameName[0].toLowerCase().replace(/ /g,'') + '.json', (err) => {
+				fs.unlink(gamesPath + '/' + gameName[0].toLowerCase().replace(/ /g,'').replace(/'/g,'').replace(/./g,'').replace(/:/g,'').replace(/"/g,'').replace(/\//g,'') + '.json', (err) => {
 					if (err){
 						console.log(err);
 						interaction.update('Error removing the game from the list.');
