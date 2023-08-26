@@ -35,7 +35,7 @@ module.exports = {
 		
 		var alreadyRegistered = false;
 
-		if(gamesFiles.length >= 25){
+		if(gameFiles.length >= 25){
 			interaction.reply({ content: 'We\'ve hit the Discord hard limit of 25 entries. Please free up some space and re-add this activity.', ephemeral : true})
 		}
 
@@ -58,7 +58,7 @@ module.exports = {
 				}
 				else {
 					console.log('File written successfully!\n')
-					interaction.reply(gameName = ' has been registered to the game list!')
+					interaction.reply(gameName + ' has been registered to the game list!')
 				}
 			})
 		}

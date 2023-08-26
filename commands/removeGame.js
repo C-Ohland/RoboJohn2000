@@ -19,7 +19,7 @@ module.exports = {
 			fs.mkdirSync(path.join(__dirname,'../server_data/'+guild_id+'/votes'))
 			fs.mkdirSync(path.join(__dirname,'../server_data/'+guild_id+'/quickvotes'))
 		}
-		const gamesPath = path.join(__dirname, '../server_data'+guild_id+'/gamelist')
+		const gamesPath = path.join(__dirname, '../server_data/'+guild_id+'/gamelist')
 		const gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'));
 		
 		const menuOptions = new StringSelectMenuBuilder()
@@ -28,7 +28,7 @@ module.exports = {
 			.setMaxValues(1)
 			.setCustomId('Remove Game')
 			
-		if (gameFile.length){
+		if (gameFiles.length){
 			for (const file of gameFiles){
 				const { name } = require(gamesPath + '/' + file)
 				menuOptions.addOptions({label: name, description: name, value: name})

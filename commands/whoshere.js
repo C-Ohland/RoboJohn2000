@@ -1,5 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 require('dotenv').config();
+const fs = require('node:fs');
+const path = require('node:path');
 
 module.exports = {
 	data: new SlashCommandBuilder()

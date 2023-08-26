@@ -1,5 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { ActionRowBuilder, Events, StringSelectMenuBuilder } = require('discord.js');
+const fs = require('node:fs');
+const path = require('node:path');
 require('dotenv').config();
 
 module.exports = {
@@ -20,7 +22,7 @@ module.exports = {
 		const gamesPath = path.join(__dirname, '../server_data/'+guild_id+'/gamelist')
 		const quickVotesPath = path.join(__dirname, '../server_data/'+guild_id+'/quickvotes')
 		const gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'))
-		const quickVoteFiles = fs.readdirSync(quickVotesPath.filter(file => file.endsWith('.json')))
+		const quickVoteFiles = fs.readdirSync(quickVotesPath).filter(file => file.endsWith('.json'))
 
 		var totalVotes = [];
 		
@@ -44,8 +46,6 @@ module.exports = {
 						voteTotal[1] += 1;
 				}
 			}
-
-			console.log(hereVotes);
 		}
 
 		var votesTotalSorted = '';
@@ -62,6 +62,15 @@ module.exports = {
 			}
 		}
 
+		var err = false
+		for (quickVoteFile of quickVoteFiles){
+			fs.unlink(quickVotesPath + '/' + quickVoteFile, (err) => {
+				err = true
+			})
+		}
+		if (err){
+			interaction.reply('Quick vote ended! Total votes for games valid for this number of players are:\n' + votesTotalSorted + '\n\nThere was an error clearing the quick votes during this process.');	
+		}
 		interaction.reply('Quick vote ended! Total votes for games valid for this number of players are:\n' + votesTotalSorted);	
 	}
 };

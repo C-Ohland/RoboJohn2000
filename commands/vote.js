@@ -28,7 +28,8 @@ module.exports = {
 		if (gameFiles.length > 0){
 			for (const file of gameFiles) {
 				const { name } = require(gamesPath + '/' + file);
-				menuOptions.addOptions({label: name, description: name, value: name});
+
+				menuOptions.addOptions({label: name, description: '  ', value: name});
 			}
 			const selectMenu = new ActionRowBuilder().addComponents(menuOptions);
 

@@ -20,10 +20,10 @@ module.exports = {
 		const gamesPath = path.join(__dirname, '../server_data/'+guild_id+'/gamelist')
 		const gameFiles = fs.readdirSync(gamesPath).filter(file => file.endsWith('.json'))
 		const menuOptions = new StringSelectMenuBuilder()
-			.setCustomId('voteSelect')
+			.setCustomId('quickVote')
 			.setPlaceholder('Nothing selected')
 			.setMinValues(1)
-			.setMaxValues(games.size)
+			.setMaxValues(gameFiles.length)
 
 		if (gameFiles.length > 0){
 			for (const file of gameFiles) {

@@ -28,7 +28,8 @@ module.exports = {
 			if (interaction.customId == 'Remove Game') {
 				gamesPath = path.join(__dirname, '../server_data/'+interaction.guildId+'/gamelist');
 				gameName = interaction.values
-				fs.unlink(gamesPath + '/' + gameName.toLowerCase().replace(/ /g,'') + '.json', (err) => {
+				console.log(gameName)
+				fs.unlink(gamesPath + '/' + gameName[0].toLowerCase().replace(/ /g,'') + '.json', (err) => {
 					if (err){
 						console.log(err);
 						interaction.update('Error removing the game from the list.');
@@ -41,7 +42,7 @@ module.exports = {
 			}
 			else if (interaction.customId == 'voteSelect'){
 				
-				votesPath = path.join(__dirname, '../server_data/'+interaction.guildId+'/gamelist')
+				votesPath = path.join(__dirname, '../server_data/'+interaction.guildId+'/votes')
 				const voteJSON = {"user" : interaction.user.username, "votes" : interaction.values}
 				fs.writeFile(votesPath + '/' + interaction.user.username + '.json' , JSON.stringify(voteJSON), (err) => {
 				if (err){
